@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Kojax Adventure</title>
+    <style>
+      body {
+        font:
+          18px Georgia,
+          serif;
+        background: #f5efdc;
+        color: #193e3b;
+        min-height: 90vh;
+        display: grid;
+        place-content: center;
+        text-align: center;
+      }
+      a {
+        color: #123f3d;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Kojax Adventure</h1>
+    <p id="message">Opening the adventure…</p>
+    <a href="./campaign/">Play Kojax Adventure</a>
+    <script>
+      if (location.protocol === "http:" || location.protocol === "https:") {
+        location.replace(
+          new URL(
+            "./campaign/" + location.search + location.hash,
+            location.href,
+          ),
+        );
+      } else {
+        document.getElementById("message").textContent =
+          "Start the local server with npm start, then open http://127.0.0.1:4173/campaign/.";
+      }
+    </script>
+  </body>
+</html>
