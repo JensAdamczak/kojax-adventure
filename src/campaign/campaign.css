@@ -627,14 +627,14 @@ dialog {
   padding: 0;
   box-shadow: none;
 }
-:is(#dialogContent, .startup-card) {
+:is(#dialogContent, .startup-card, .rescue-score) {
   --frame-width: 16px;
   position: relative;
   isolation: isolate;
   padding: var(--frame-width);
   filter: drop-shadow(0 12px 24px #09251755);
 }
-:is(#dialogContent, .startup-card)::before {
+:is(#dialogContent, .startup-card, .rescue-score)::before {
   content: "";
   position: absolute;
   inset: 8px;
@@ -643,7 +643,7 @@ dialog {
   z-index: -1;
   pointer-events: none;
 }
-:is(#dialogContent, .startup-card)::after {
+:is(#dialogContent, .startup-card, .rescue-score)::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -654,10 +654,10 @@ dialog {
   z-index: 2;
 }
 @media (max-width: 600px) {
-  :is(#dialogContent, .startup-card) {
+  :is(#dialogContent, .startup-card, .rescue-score) {
     --frame-width: 13px;
   }
-  :is(#dialogContent, .startup-card)::before {
+  :is(#dialogContent, .startup-card, .rescue-score)::before {
     inset: 6px;
     border-radius: 7px;
   }
@@ -788,4 +788,55 @@ dialog:has(.journey-map) {
 }
 .dialog-close + .dialog-body {
   padding-top: 48px;
+}
+
+/* A monochrome speaker, using the same circular felt-colored HUD button. */
+#sound svg {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#sound .sound-off,
+#sound[aria-pressed="true"] .sound-waves {
+  display: none;
+}
+#sound[aria-pressed="true"] .sound-off {
+  display: block;
+}
+
+/* The same ivory felt frame as the intros, placed below the rescue fleet. */
+#rescueScore.rescue-score {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 63%;
+  transform: translateX(-50%);
+  width: min(76%, 400px);
+  box-sizing: border-box;
+  text-align: center;
+  color: #29483a;
+  font-family: Georgia, "Palatino Linotype", serif;
+  pointer-events: none;
+}
+.rescue-score[hidden] {
+  display: none;
+}
+.rescue-score h2 {
+  font-size: clamp(12px, 2vw, 17px);
+  letter-spacing: 0.08em;
+  margin: 4px 0 8px;
+}
+.rescue-score strong {
+  display: block;
+  font-size: clamp(26px, 4vw, 42px);
+  line-height: 1.1;
+}
+.rescue-score p {
+  font-size: clamp(13px, 2vw, 18px);
+  margin: 8px 0 4px;
 }

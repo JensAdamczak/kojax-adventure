@@ -1,3 +1,4 @@
+import { GameAudio } from "../src/campaign/audio.js";
 import vm from "node:vm";
 import { text, levelText, biomeText } from "../src/campaign/text.js";
 import { escapeHTML, formatText } from "../src/campaign/text-format.js";
@@ -32,6 +33,7 @@ export function captureScreens(source, levels, copy = text) {
   };
   const context = vm.createContext({
     text: copy,
+    GameAudio,
     levelText,
     biomeNames: biomeText,
     escapeHTML,

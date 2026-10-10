@@ -1,3 +1,4 @@
+import { rescueDurationMs } from "./audio-config.js";
 import { text, levelText } from "./text.js";
 import { escapeHTML, formatText } from "./text-format.js";
 import { journeyScore, restartedCrossing } from "./score.js";
@@ -19,6 +20,8 @@ import {
 import { CampaignView } from "./view.js";
 import { MovementInput } from "./input.js";
 import { bindFullscreen } from "./fullscreen.js";
+import { GameAudio } from "./audio.js";
+const audio = new GameAudio();
 // DOM references and persistent campaign state.
 const $ = (id) => document.getElementById(id);
 const dialog = $("dialog");
@@ -75,6 +78,7 @@ function display(html) {
   if (!dialog.open) dialog.showModal();
 }
 function play() {
+  audio.unlock();
   dialog.close();
   $("cells").focus({
     preventScroll: true,
@@ -219,6 +223,20 @@ function completion() {
     start(index + 1);
   };
 }
+let rescueRun = 0;
+function beginRescue(replay = false) {
+  const run = ++rescueRun,
+    currentEpoch = epoch;
+  busy = true;
+  view.rescueStart = performance.now() - (replay ? 10000 : 0);
+  audio.rescue(view.reduced, replay);
+  setTimeout(() => {
+    if (currentEpoch === epoch && run === rescueRun) {
+      busy = false;
+      ending();
+    }
+  }, rescueDurationMs);
+}
 function ending() {
   finished = true;
   const results = practice
@@ -247,7 +265,10 @@ function ending() {
     <br>
     <button class="secondary" id="newJourney">${escapeHTML(text.buttons.newAdventure)}</button>
     </div>`);
-  $("watch").onclick = play;
+  $("watch").onclick = () => {
+    play();
+    beginRescue(true);
+  };
   $("newJourney").onclick = () => confirmNew();
 }
 function confirmNew(
@@ -303,6 +324,7 @@ function perform(dir, special = false) {
   mode = null;
   view.facing = dir;
   const result = move(level, state, dir, special);
+  if (["object", "rooted"].includes(result.type)) audio.action(result, 0, 0);
   const active = ["step", "jump", "bridge", "rooted", "fall", "win"].includes(
     result.type,
   );
@@ -318,6 +340,8 @@ function perform(dir, special = false) {
         result.fallen,
         result.jumped,
       );
+    if (result.type !== "rooted")
+      audio.action(result, duration, view.motion.landDelay || 0);
     if (result.type === "fall") {
       controls.clear();
       marks.set(key(target), {
@@ -344,17 +368,7 @@ function perform(dir, special = false) {
             save();
           }
           if (index === 9) {
-            busy = true;
-            view.rescueStart = performance.now();
-            setTimeout(
-              () => {
-                if (e === epoch) {
-                  busy = false;
-                  ending();
-                }
-              },
-              view.reduced ? 1000 : 10000,
-            );
+            beginRescue();
           } else completion();
         } else if (!dialog.open) controls.drain();
       },
@@ -368,12 +382,14 @@ function perform(dir, special = false) {
 }
 // Keyboard and touch controls.
 function input(dir) {
+  audio.unlock();
   const kind =
     mode === "run" ? "push" : mode === "jump" || spaceHeld ? "jump" : "walk";
   mode = null;
   controls.direction(dir, kind);
 }
 function tap(p) {
+  audio.unlock();
   if (dialog.open || state.won || view?.motion?.type === "fall") return;
   const dx = p[0] - state.pos[0],
     dy = p[1] - state.pos[1],
@@ -384,6 +400,7 @@ function tap(p) {
   else say(text.status.chooseCell);
 }
 document.addEventListener("keydown", (e) => {
+  if (e.target?.matches?.("input, select, textarea")) return;
   if (dialog.open || !view) return;
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key,
     dir = {
@@ -423,6 +440,7 @@ window.addEventListener("blur", () => {
   mode = null;
 });
 document.addEventListener("visibilitychange", () => {
+  audio.setHidden(document.hidden);
   if (document.hidden) {
     cancelPending();
     mode = null;
@@ -450,6 +468,7 @@ function restartMenu() {
   $("restartCrossing").onclick = () => {
     dialog.close();
     epoch++;
+    audio.cancelActions();
     cancelPending();
     state = restartedCrossing(level, state);
     marks.clear();
@@ -462,6 +481,17 @@ function restartMenu() {
 $("help").onclick = () =>
   finished ? ending() : state.won ? completion() : help();
 $("reset").onclick = restartMenu;
+function refreshSound() {
+  const label = audio.settings.muted ? text.audio.unmute : text.audio.mute;
+  $("sound").setAttribute("aria-label", label);
+  $("sound").title = label;
+  $("sound").setAttribute("aria-pressed", String(audio.settings.muted));
+}
+$("sound").onclick = () => {
+  audio.setSettings({ muted: !audio.settings.muted });
+  refreshSound();
+};
+refreshSound();
 bindFullscreen($("fullscreen"), document, () => {
   display(`<div class="dialog-body">
     <h2>${escapeHTML(text.errors.fullscreenTitle)}</h2>
@@ -499,11 +529,13 @@ function loadImage(name, path) {
 }
 async function start(n) {
   epoch++;
+  audio.cancelActions();
   cancelPending();
   busy = true;
   finished = false;
   index = n;
   level = levels[n];
+  audio.setBiome(level.biome);
   // Labels depend on the crossing, not on movement; format them only once.
   boardLabel = formatText(text.accessibility.board, {
     level: level.name,
@@ -528,12 +560,25 @@ async function start(n) {
         : []),
     ]);
     if (!view)
-      view = new CampaignView($("scene"), $("cells"), assets, () => ({
-        level,
-        state,
-        marks,
-        prepared: controls.objectPress,
-      }));
+      view = new CampaignView(
+        $("scene"),
+        $("cells"),
+        assets,
+        () => ({
+          level,
+          state,
+          marks,
+          prepared: controls.objectPress,
+          total: score(),
+          scoreText: {
+            ...text.rescueScore,
+            title: practice
+              ? text.rescueScore.practice
+              : text.rescueScore.title,
+          },
+        }),
+        $("rescueScore"),
+      );
     else view.reset();
     refresh();
     $("loading").hidden = true;

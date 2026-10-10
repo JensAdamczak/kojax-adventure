@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CampaignView } from "../src/campaign/view.js";
+import { CampaignView, footprintColor } from "../src/campaign/view.js";
 import { levels } from "../src/campaign/levels.js";
 import { createState } from "../src/campaign/engine.js";
 test("Every campaign scene renders hazards, four-direction bridges, motion and rescue at desktop and mobile sizes", () => {
@@ -10,6 +10,7 @@ test("Every campaign scene renders hazards, four-direction bridges, motion and r
     "clearRect",
     "drawImage",
     "fillRect",
+    "fillText",
     "save",
     "restore",
     "translate",
@@ -79,7 +80,17 @@ test("Every campaign scene renders hazards, four-direction bridges, motion and r
       },
       cells,
       assets,
-      () => ({ level, state, marks }),
+      () => ({
+        level,
+        state,
+        marks,
+        total: { steps: 123, attempts: 12 },
+        scoreText: {
+          title: "FINAL SCORE",
+          steps: "steps",
+          attempts: "attempts",
+        },
+      }),
     );
   for (const l of levels) {
     level = l;
@@ -110,4 +121,43 @@ test("Every campaign scene renders hazards, four-direction bridges, motion and r
       for (const t of [500, 3000, 6500, 10000]) view.draw(t);
     }
   }
+});
+
+test("basalt footprints use contrasting ash rather than dark earth", () => {
+  assert.equal(footprintColor("lava"), "#d4c3a6");
+  assert.equal(footprintColor("jungle"), "#253326");
+  assert.equal(footprintColor("snow"), "#668393");
+});
+
+test("rescue score card shows totals after boarding and hides on a new crossing", () => {
+  const nodes = Object.fromEntries(
+    ["title", "steps", "attempts"].map((n) => [
+      `[data-rescue="${n}"]`,
+      { textContent: "" },
+    ]),
+  );
+  const card = { hidden: true, querySelector: (s) => nodes[s] };
+  const view = Object.create(CampaignView.prototype);
+  Object.assign(view, {
+    scoreCard: card,
+    rescueStart: 1000,
+    reduced: false,
+    read: () => ({
+      total: { steps: 245, attempts: 20 },
+      scoreText: { title: "FINAL SCORE", steps: "steps", attempts: "attempts" },
+    }),
+  });
+  view.updateScoreCard(8000);
+  assert.equal(card.hidden, true);
+  view.updateScoreCard(8200);
+  assert.equal(card.hidden, false);
+  assert.equal(nodes['[data-rescue="steps"]'].textContent, "245 steps");
+  assert.equal(nodes['[data-rescue="attempts"]'].textContent, "20 attempts");
+  view.rescueStart = null;
+  view.updateScoreCard(9000);
+  assert.equal(card.hidden, true);
+  view.rescueStart = 9000;
+  view.reduced = true;
+  view.updateScoreCard(9000);
+  assert.equal(card.hidden, false);
 });

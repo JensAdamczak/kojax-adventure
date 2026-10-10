@@ -19,9 +19,13 @@ Open http://127.0.0.1:4173/. The preview builds the game and serves it on your c
 - **Push:** press toward an adjacent object twice, or tap it twice. No timing limit. R then a direction also works.
 - **Jump:** from level 4, hold Space and press a direction, or press J then a direction. On touch, tap a landing two cells away.
 - Hazards return Kojax to the entrance and restore the objects. Retries are unlimited.
-- Help, restart, and fullscreen controls sit in the scenery border.
+- Mute, help, restart, and fullscreen controls sit in the scenery border.
 
 Progress and scores are stored in your browser. A practice link such as `campaign/?level=5` leaves campaign progress untouched.
+
+## Sound
+
+Each environment has ambience and surface sounds, with effects for hazards, jumps, and obstacles. The balloon rescue plays the Kojax theme. Sound starts after interaction; the speaker button toggles mute for the session. See [AUDIO.md](AUDIO.md) to adjust the mix or replace clips.
 
 ## Development
 

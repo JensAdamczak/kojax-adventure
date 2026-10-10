@@ -1,0 +1,58 @@
+Kojax Adventure — audio credits
+
+Original project audio (MIT, see repository LICENSE):
+- water-ambience.wav, beach-ambience.wav, jungle-ambience.wav,
+  lava-ambience.wav, snow-ambience.wav: synthesized environment ambience.
+- jump.wav, push-effort.wav, level-complete.wav: synthesized action cues.
+- rescue-theme.wav: Kojax theme composed by the project owner; warm flute
+  arrangement with original synthesized instruments. 120 BPM, 10.5 seconds.
+  No third-party music samples.
+
+The following recordings are CC0 1.0:
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Peludo — Water Splash and sand footsteps
+https://opengameart.org/content/water-splash-and-sand-footsteps
+Author's project/profile: https://rnan.itch.io/
+Used for cell-water.wav and hazard-water.wav. Excerpts with gain and fades.
+
+Fantozzi / Iwan Gabovitch (qubodup) — Footsteps (Grass/Sand & Stone)
+https://opengameart.org/content/fantozzis-footsteps-grasssand-stone
+Used for cell-sand.wav, cell-grass.wav, cell-rubble.wav, and hazard-beach.wav.
+Sand and stone recordings adapted as atmospheric surfaces; trimming, soft
+filtering, gain and fades. Beach hazard also layers the rubberduck source below.
+
+Corsica_S / Iwan Gabovitch — 42 Snow and Gravel Footsteps
+https://opengameart.org/content/42-snow-and-gravel-footsteps
+Used for cell-snow.wav, hazard-snow.wav, and topple-ice.wav.
+Snow hazard: original contact layered with early forward and reversed snow,
+original speed, soft fades and 80ms overlap; 0.87375 seconds. No mud or synth tones.
+
+rubberduck — 75 CC0 Breaking / Falling / Hit SFX
+https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx
+Used for hazard-beach.wav, topple-driftwood.wav, topple-rock.wav, topple-ice.wav.
+Wood hit 01 supplies driftwood, rock_falling_03 supplies rock/beach,
+and glass_falling_01 is layered with snow for ice. Trim, gain, fades and layering.
+
+bart — Steam release sounds
+https://opengameart.org/content/steam-release-sounds
+Used for hazard-lava.wav: trimmed and softened heat hiss.
+
+qubodup — 20 Rustles (Dry Leaves)
+https://opengameart.org/content/20-rustles-dry-leaves
+Used for topple-palm.wav: rustle02, slowed vegetation texture with a soft tail.
+
+ahill86 — MudSquelch.wav
+https://freesound.org/people/ahill86/sounds/207142/
+Used for hazard-jungle.wav: public HQ MP3 preview, excerpt 3.5–5.0 seconds;
+constant gain, 40ms fade-in, 100ms fade-out, mono 32kHz conversion.
+
+Luke.RUSTLTD — wind1
+https://opengameart.org/content/wind1
+Used for balloon-burner.wav: synthesized wind recording, filtered excerpt
+with a gentle airflow swell and fades.
+
+themightyglider; original qubodup — Catching fire
+https://opengameart.org/content/catching-fire
+Used for torch-ignite.wav: five overlapping flame excerpts at 280ms intervals,
+gains 1/0.8/0.65/0.5/0.35 and ending fade; 1.57 seconds.

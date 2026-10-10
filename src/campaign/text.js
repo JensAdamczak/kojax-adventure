@@ -130,6 +130,13 @@ export const text = {
     savingFailed:
       "Progress could not be saved. Keep this tab open to continue.",
   },
+  audio: { mute: "Mute sound", unmute: "Turn sound on" },
+  rescueScore: {
+    title: "FINAL SCORE",
+    steps: "steps",
+    attempts: "attempts",
+    practice: "PRACTICE SCORE",
+  },
   ending: {
     eyebrow: "A SIGNAL. A SKY FULL OF FRIENDS.",
     title: "Homeward, Kojax.",

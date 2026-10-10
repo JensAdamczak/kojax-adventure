@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 import { levels } from "../src/campaign/levels.js";
 import { sceneKey, scenePath } from "../src/campaign/assets.js";
 
+import { audioFiles } from "../src/campaign/audio-config.js";
+
 const root = fileURLToPath(new URL("../dist/", import.meta.url));
 function files(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -70,6 +72,7 @@ for (const level of levels) {
       assets.add(`${level.prop}-${pose}.webp`);
 }
 for (const asset of assets) visit(path.join(root, "campaign/assets", asset));
+for (const audio of audioFiles) visit(path.join(root, "campaign/audio", audio));
 assert.deepEqual(
   all.filter((file) => !reachable.has(file)),
   [],
