@@ -23,6 +23,17 @@
         data-label="accessibility.movementArea"
         tabindex="0"
       ></div>
+      <section
+        id="rescueScore"
+        class="rescue-score"
+        role="status"
+        aria-live="polite"
+        hidden
+      >
+        <h2 data-rescue="title"></h2>
+        <strong data-rescue="steps"></strong>
+        <p data-rescue="attempts"></p>
+      </section>
       <header class="hud">
         <div class="score" data-label="accessibility.score">
           <span title="" data-label="accessibility.attempts"
@@ -33,6 +44,18 @@
           </span>
         </div>
         <nav data-label="accessibility.controls">
+          <button
+            id="sound"
+            title="Mute sound"
+            aria-label="Mute sound"
+            aria-pressed="false"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9h4l5-4v14l-5-4H4z" />
+              <path class="sound-waves" d="M16 8q4 4 0 8m3-11q7 7 0 14" />
+              <path class="sound-off" d="m16 9 5 6m0-6-5 6" />
+            </svg>
+          </button>
           <button
             id="fullscreen"
             title=""

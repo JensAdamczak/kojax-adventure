@@ -102,6 +102,7 @@ test("Keyboard Space is a held jump modifier; release restores walking and repea
     dialog: { open: false },
     view: {},
     state: { won: false },
+    audio: { unlock() {}, setHidden() {} },
     controls: { direction: (...a) => calls.push(a) },
     say() {},
     cancelPending() {},

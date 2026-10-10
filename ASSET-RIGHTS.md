@@ -11,3 +11,5 @@ forks and derivative games, provided you retain the copyright and license notice
 Separately identified third-party materials retain their own licenses and
 required attribution. Only add assets under MIT when you have the rights to
 do so; document any third-party exceptions alongside those assets.
+
+Recorded sound effects include separately credited CC0 recordings. See [audio credits](public/campaign/audio/CREDITS.txt) for the file mapping, authors, sources, and processing. Original synthesized ambience, action cues, and the Kojax theme arrangement are MIT licensed.

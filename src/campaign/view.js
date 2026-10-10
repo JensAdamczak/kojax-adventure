@@ -1,5 +1,9 @@
+import { fallContactFraction } from "./motion-timing.js";
 import { sceneKey } from "./assets.js";
 import { key } from "./levels.js";
+// Pale ash tracks stay readable on dark basalt. Other terrain keeps its existing tint.
+export const footprintColor = (biome) =>
+  biome === "lava" ? "#d4c3a6" : biome === "snow" ? "#668393" : "#253326";
 const biomes = ["water", "beach", "jungle", "lava", "snow"];
 const clamp = (x) => Math.max(0, Math.min(1, x));
 // A failed jump must visibly reach its landing before the hazard reacts.
@@ -18,9 +22,12 @@ export function fallPose(m, now, s, biome) {
     };
   }
   const p = lead
-    ? 0.22 + 0.78 * clamp((elapsed - lead) / (m.duration - lead))
+    ? fallContactFraction +
+      (1 - fallContactFraction) * clamp((elapsed - lead) / (m.duration - lead))
     : clamp(elapsed / m.duration);
-  let pos = m.from.map((v, i) => v + (m.to[i] - v) * clamp(p / 0.22)),
+  let pos = m.from.map(
+      (v, i) => v + (m.to[i] - v) * clamp(p / fallContactFraction),
+    ),
     lift = 0,
     sink = 0,
     clip = false,
@@ -32,8 +39,8 @@ export function fallPose(m, now, s, biome) {
       lift = Math.sin(back * Math.PI) * s * 0.45;
       opacity = 1 - clamp((p - 0.65) / 0.17);
     } else {
-      sink = clamp((p - 0.22) / 0.57);
-      clip = p > 0.22;
+      sink = clamp((p - fallContactFraction) / 0.57);
+      clip = p > fallContactFraction;
     }
   } else {
     pos = null;
@@ -42,9 +49,10 @@ export function fallPose(m, now, s, biome) {
   return { pos, lift, sink, clip, opacity };
 }
 export class CampaignView {
-  constructor(canvas, cells, assets, read) {
+  constructor(canvas, cells, assets, read, scoreCard = null) {
     Object.assign(this, {
       canvas,
+      scoreCard,
       cells,
       assets,
       read,
@@ -215,6 +223,7 @@ export class CampaignView {
   reset() {
     this.motion = null;
     this.rescueStart = null;
+    if (this.scoreCard) this.scoreCard.hidden = true;
     this.facing = "right";
     this.resize();
   }
@@ -373,7 +382,30 @@ export class CampaignView {
     }
   }
 
+  updateScoreCard(now) {
+    if (!this.scoreCard) return;
+    const visible =
+      this.rescueStart !== null &&
+      (this.reduced || now - this.rescueStart >= 7200);
+    if (this.scoreCard.hidden === visible) this.scoreCard.hidden = !visible;
+    if (!visible) return;
+    const { total, scoreText } = this.read();
+    if (!total || !scoreText) return;
+    const content = [
+      scoreText.title,
+      `${total.steps} ${scoreText.steps}`,
+      `${total.attempts} ${scoreText.attempts}`,
+    ];
+    const signature = JSON.stringify(content);
+    if (signature === this.scoreSignature) return;
+    this.scoreSignature = signature;
+    for (const [index, name] of ["title", "steps", "attempts"].entries())
+      this.scoreCard.querySelector(`[data-rescue="${name}"]`).textContent =
+        content[index];
+  }
+
   draw(now) {
+    this.updateScoreCard(now);
     const { level, state, marks, prepared } = this.read(),
       c = this.ctx,
       s = this.cell;
@@ -435,7 +467,7 @@ export class CampaignView {
             yy,
             s * 0.045,
             s * 0.03,
-            level.biome === "snow" ? "#668393" : "#253326",
+            footprintColor(level.biome),
           );
           for (let k = 0; k < 3; k++)
             this.ellipse(
@@ -443,7 +475,7 @@ export class CampaignView {
               yy - s * 0.035,
               s * 0.012,
               s * 0.012,
-              level.biome === "snow" ? "#668393" : "#253326",
+              footprintColor(level.biome),
             );
         }
       }
