@@ -12,8 +12,9 @@ export class GameAudio {
     createContext = () =>
       new (globalThis.AudioContext || globalThis.webkitAudioContext)(),
     fetcher = (...args) => fetch(...args),
+    getAudioSession = () => globalThis.navigator?.audioSession,
   } = {}) {
-    Object.assign(this, { createContext, fetcher });
+    Object.assign(this, { createContext, fetcher, getAudioSession });
     this.settings = { muted: false, ...audioMix };
     // Fixed volume mix; the HUD mute toggle lasts for this session.
     this.buffers = new Map();
@@ -25,6 +26,14 @@ export class GameAudio {
   }
   // Called synchronously from a user gesture; audio never blocks entering/moving.
   unlock() {
+    if (this.settings.muted || this.hidden) return;
+    // iOS otherwise treats Web Audio as ambient sound and can silence it with
+    // the phone's Silent Mode switch. Request media playback during the gesture.
+    // The optional API must never prevent audio on browsers that lack/reject it.
+    try {
+      const session = this.getAudioSession();
+      if (session && session.type !== "playback") session.type = "playback";
+    } catch {}
     try {
       if (!this.context) {
         this.context = this.createContext();
