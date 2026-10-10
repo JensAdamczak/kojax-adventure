@@ -221,3 +221,66 @@ test("airborne replay plays theme without relighting the torch", async () => {
   audio.rescue(false, true);
   assert.deepEqual(cues, [["rescue-theme"], ["balloon-burner", 1800]]);
 });
+
+test("playback session is requested before context creation/resume during the gesture", async () => {
+  const events = [];
+  let type = "auto";
+  const session = {
+    get type() {
+      return type;
+    },
+    set type(value) {
+      type = value;
+      events.push(value);
+    },
+  };
+  const { audio, context, sources } = harness();
+  audio.getAudioSession = () => session;
+  audio.createContext = () => {
+    events.push("create");
+    return context;
+  };
+  const resume = context.resume;
+  context.resume = () => {
+    events.push("resume");
+    return resume();
+  };
+  audio.setBiome("water");
+  assert.deepEqual(events, []);
+  audio.unlock();
+  assert.deepEqual(events, ["playback", "create", "resume"]);
+  await settle();
+  assert.equal(sources.filter((s) => s.loop).length, 1);
+  audio.setSettings({ muted: true });
+  events.length = 0;
+  audio.unlock();
+  assert.deepEqual(events, []);
+  audio.setSettings({ muted: false });
+  await settle();
+  assert.equal(sources.filter((s) => s.loop && !s.stopped).length, 1);
+});
+
+test("missing or rejecting Audio Session API still allows normal playback", async () => {
+  for (const getAudioSession of [
+    () => undefined,
+    () => {
+      throw Error("unavailable");
+    },
+    () => ({
+      get type() {
+        return "auto";
+      },
+      set type(value) {
+        throw Error("unsupported");
+      },
+    }),
+  ]) {
+    const { audio, context, sources } = harness();
+    audio.getAudioSession = getAudioSession;
+    audio.setBiome("snow");
+    audio.unlock();
+    await settle();
+    assert.equal(context.state, "running");
+    assert.equal(sources.filter((s) => s.loop).length, 1);
+  }
+});

@@ -18,3 +18,7 @@ Replace a WAV using the existing filename to preserve its cue mapping. Trim sile
 For a new filename, update `audio-config.js` and the playback mapping. The release check verifies all declared files. Keep source recordings, audition pages, and alternate takes outside the public assets folder. Document any third-party source and license in `public/campaign/audio/CREDITS.txt`; original project audio is MIT licensed.
 
 Run `npm test`, `npm run build`, and `npm run check:release`, then test walking, falling, pushing, mute, and the finale through `npm start`. Test both a fresh load and a replay. Publishing still uses the manual GitHub Pages workflow.
+
+## iPhone Safari
+
+On browsers supporting the Audio Session API, the first unmuted interaction requests a `playback` session before starting Web Audio. This allows media-volume playback when the iPhone is in Silent Mode. The game's mute button still silences all sound. Browsers without this API retain their normal behavior; older iOS versions may require Silent Mode to be off. Physical-device testing is required to verify speaker routing and the Silent Mode switch.

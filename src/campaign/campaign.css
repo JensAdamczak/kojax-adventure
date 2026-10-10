@@ -790,16 +790,22 @@ dialog:has(.journey-map) {
   padding-top: 48px;
 }
 
-/* A monochrome speaker, using the same circular felt-colored HUD button. */
+/* A quiet speaker icon; button dimensions match the neighboring HUD controls. */
 #sound svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+/* Muting changes the icon, without the bright pressed-state treatment. */
+#sound[aria-pressed="true"] {
+  background: #193c30e8 !important;
+  color: #f6eaca !important;
+  border-color: #c2d4a44a !important;
 }
 #sound .sound-off,
 #sound[aria-pressed="true"] .sound-waves {
