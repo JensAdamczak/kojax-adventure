@@ -13,6 +13,8 @@ npm start
 
 Open http://127.0.0.1:4173/. The preview builds the game and serves it on your computer only.
 
+The title screen offers **Enter the game**, or **Continue adventure** when a saved journey exists. Starting a new journey asks for confirmation before clearing progress. Direct practice links bypass the title screen.
+
 ## Controls
 
 - **Walk:** WASD or arrow keys; on touch, tap an adjacent cell.

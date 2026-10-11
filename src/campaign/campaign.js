@@ -72,12 +72,15 @@ function cancelPending() {
   spaceHeld = false;
 }
 function display(html) {
+  audio.setPresentation("quiet");
+  dialog.dataset.screen = "card";
   cancelPending();
   mode = null;
   $("dialogContent").innerHTML = html;
   if (!dialog.open) dialog.showModal();
 }
 function play() {
+  audio.setPresentation("playing");
   audio.unlock();
   dialog.close();
   $("cells").focus({
@@ -141,6 +144,24 @@ function refresh() {
     });
 }
 const lesson = () => levelText[index + 1].lesson;
+function titleScreen() {
+  const returning = progress.results.length > 0;
+  display(`<section class="title-screen">
+    <h1>${escapeHTML(text.app.title)}</h1>
+    <img src="../assets/kojax.png" width="387" height="317" alt="${escapeHTML(text.accessibility.character)}" fetchpriority="high">
+    <button id="enterGame" class="title-enter">${escapeHTML(returning ? text.titleScreen.continue : text.titleScreen.enter)}</button>
+    ${returning ? `<button id="titleNew" class="title-new">${escapeHTML(text.buttons.newJourney)}</button>` : ""}
+  </section>`);
+  dialog.dataset.screen = "title";
+  audio.setPresentation("silent");
+  $("enterGame").onclick = () => {
+    audio.unlock();
+    if (progress.results.length === 10) ending();
+    else introduction();
+  };
+  if ($("titleNew")) $("titleNew").onclick = () => confirmNew(titleScreen);
+  $("enterGame").focus({ preventScroll: true });
+}
 // Level intro and menus. Wording is edited in text.js, not in these templates.
 function introduction() {
   display(`<img class="dialog-art" src="${assetURL(scenePath(sceneKey(level)))}" alt="${escapeHTML(formatText(text.accessibility.scene, { biome: biomeNames[level.biome] }))}">
@@ -265,6 +286,7 @@ function ending() {
     <br>
     <button class="secondary" id="newJourney">${escapeHTML(text.buttons.newAdventure)}</button>
     </div>`);
+  audio.setPresentation("silent");
   $("watch").onclick = () => {
     play();
     beginRescue(true);
@@ -447,7 +469,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 dialog.addEventListener("cancel", (e) => {
-  if (state.won) e.preventDefault();
+  if (state.won || dialog.dataset.screen === "title") e.preventDefault();
 });
 // Restart dialogs preserve the current journey until confirmed.
 function restartMenu() {
@@ -620,6 +642,7 @@ async function load() {
       refresh();
       ending();
     }
+    if (!practice && view) titleScreen();
     registerTools();
   } catch (error) {
     loadError(error);

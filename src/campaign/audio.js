@@ -1,6 +1,7 @@
 import {
   audioBiomes,
   audioMix,
+  rescueAmbienceScale,
   soundGain,
   commonSounds,
   rescueSounds,
@@ -21,6 +22,7 @@ export class GameAudio {
     this.jobs = new Map();
     this.voices = new Set();
     this.hidden = false;
+    this.presentation = "playing";
     this.biome = null;
     this.generation = 0;
   }
@@ -81,7 +83,13 @@ export class GameAudio {
     return this.jobs.get(key);
   }
   prepare() {
-    if (!this.context || !this.biome || this.settings.muted || this.hidden)
+    if (
+      !this.context ||
+      !this.biome ||
+      this.settings.muted ||
+      this.hidden ||
+      this.presentation === "silent"
+    )
       return;
     const generation = this.generation,
       biome = this.biome,
@@ -101,6 +109,7 @@ export class GameAudio {
           generation === this.generation &&
           !this.hidden &&
           !this.settings.muted &&
+          this.presentation !== "silent" &&
           !this.ambientSource &&
           this.context.state === "running"
         ) {
@@ -110,7 +119,7 @@ export class GameAudio {
           source.connect(this.ambientGain);
           this.ambientGain.gain.setValueAtTime(0, this.context.currentTime);
           this.ambientGain.gain.linearRampToValueAtTime(
-            this.settings.ambience,
+            this.ambienceLevel(),
             this.context.currentTime + 0.4,
           );
           source.start();
@@ -125,6 +134,7 @@ export class GameAudio {
       this.context.state !== "running" ||
       this.hidden ||
       this.settings.muted ||
+      this.presentation !== "playing" ||
       !this.buffers.has(name)
     )
       return;
@@ -138,14 +148,16 @@ export class GameAudio {
     source.buffer = this.buffers.get(name);
     source.connect(gain);
     gain.connect(this.effectGain);
-    const voice = { source, gain, step };
+    const voice = { source, gain, step, theme: name === "rescue-theme" };
     this.voices.add(voice);
     source.onended = () => {
       this.voices.delete(voice);
+      if (voice.theme) this.updateAmbienceGain();
       source.disconnect();
       gain.disconnect();
     };
     source.start(this.context.currentTime + Math.max(0, delay) / 1000, offset);
+    if (voice.theme) this.updateAmbienceGain();
   }
   action(result, duration, landDelay) {
     for (const [name, delay] of actionSounds(
@@ -180,6 +192,7 @@ export class GameAudio {
   }
   stopVoice(voice) {
     this.voices.delete(voice);
+    if (voice.theme) this.updateAmbienceGain();
     try {
       voice.gain.gain.setTargetAtTime(0, this.context.currentTime, 0.012);
       voice.source.stop(this.context.currentTime + 0.05);
@@ -198,18 +211,43 @@ export class GameAudio {
       this.ambientSource = null;
     }
   }
+  ambienceLevel() {
+    if (this.settings.muted || this.hidden || this.presentation === "silent")
+      return 0;
+    if (this.presentation === "quiet") return this.settings.ambience * 0.2;
+    const themePlaying = [...this.voices].some((voice) => voice.theme);
+    return (
+      this.settings.ambience *
+      (this.biome === "snow" && themePlaying ? rescueAmbienceScale : 1)
+    );
+  }
+  updateAmbienceGain() {
+    if (!this.context) return;
+    const gain = this.ambientGain.gain;
+    // Cancel any startup fade so it cannot raise the storm over the music.
+    gain.cancelScheduledValues(this.context.currentTime);
+    gain.setTargetAtTime(
+      this.ambienceLevel(),
+      this.context.currentTime,
+      this.settings.muted || this.hidden ? 0.03 : 0.18,
+    );
+  }
   applyGains() {
     if (!this.context) return;
-    const quiet = this.settings.muted || this.hidden;
-    for (const [node, value] of [
-      [this.ambientGain, this.settings.ambience],
-      [this.effectGain, this.settings.effects],
-    ])
-      node.gain.setTargetAtTime(
-        quiet ? 0 : value,
-        this.context.currentTime,
-        0.03,
-      );
+    this.updateAmbienceGain();
+    this.effectGain.gain.setTargetAtTime(
+      this.settings.muted || this.hidden ? 0 : this.settings.effects,
+      this.context.currentTime,
+      0.03,
+    );
+  }
+  // Menus keep a low ambience; title and final results are completely silent.
+  setPresentation(mode) {
+    this.presentation = mode;
+    if (mode !== "playing") this.cancelActions();
+    this.applyGains();
+    if (mode === "silent") this.stopAmbience();
+    else this.prepare();
   }
   setSettings(patch) {
     if (typeof patch.muted === "boolean") this.settings.muted = patch.muted;

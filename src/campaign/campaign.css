@@ -846,3 +846,102 @@ dialog:has(.journey-map) {
   font-size: clamp(13px, 2vw, 18px);
   margin: 8px 0 4px;
 }
+
+/* A quiet title screen, using the existing character and ivory felt frame. */
+dialog[data-screen="title"] {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  background: #000;
+  color: #f5efdc;
+}
+dialog[data-screen="title"]::backdrop {
+  background: #000;
+}
+dialog[data-screen="title"] #dialogContent {
+  padding: 24px;
+  min-height: 100%;
+  filter: none;
+  display: grid;
+  place-items: center;
+}
+dialog[data-screen="title"] #dialogContent::before,
+dialog[data-screen="title"] #dialogContent::after {
+  display: none;
+}
+.title-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  width: 100%;
+  padding: 20px 0;
+}
+.title-screen h1 {
+  font:
+    400 clamp(24px, 4vw, 34px) Georgia,
+    "Palatino Linotype",
+    serif;
+  letter-spacing: 0.025em;
+  color: #f5efdc;
+  margin: 0 0 4px;
+}
+.title-screen img {
+  width: min(340px, 75vw, 43svh);
+  height: auto;
+  object-fit: contain;
+}
+.title-enter {
+  position: relative;
+  isolation: isolate;
+  border: 10px solid transparent;
+  border-image: url("assets/journal-frame-ivory.webp") 88 / 10px / 0 round;
+  background: transparent;
+  color: #193e3b;
+  padding: 9px 22px;
+  font:
+    700 20px Georgia,
+    "Palatino Linotype",
+    serif;
+  min-height: 54px;
+  cursor: pointer;
+}
+.title-enter::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 4px;
+  background: #f5efdc;
+  z-index: -1;
+}
+.title-new {
+  color: #c8c5bb;
+  background: transparent;
+  border: 0;
+  min-height: 44px;
+  font:
+    15px Georgia,
+    serif;
+  cursor: pointer;
+  margin-top: -16px;
+}
+.title-enter:focus-visible,
+.title-new:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-height: 500px) {
+  .title-screen {
+    gap: 14px;
+    padding: 0;
+  }
+  .title-screen img {
+    width: min(200px, 36svh);
+  }
+  .title-screen h1 {
+    font-size: 23px;
+  }
+}
