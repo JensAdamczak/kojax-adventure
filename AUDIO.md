@@ -22,3 +22,7 @@ Run `npm test`, `npm run build`, and `npm run check:release`, then test walking,
 ## iPhone Safari
 
 On browsers supporting the Audio Session API, the first unmuted interaction requests a `playback` session before starting Web Audio. This allows media-volume playback when the iPhone is in Silent Mode. The game's mute button still silences all sound. Browsers without this API retain their normal behavior; older iOS versions may require Silent Mode to be off. Physical-device testing is required to verify speaker routing and the Silent Mode switch.
+
+## Screen and finale mix
+
+Level intros and menus reduce ambience to 20% of its gameplay gain. The title and final results screens are silent; choosing Watch the balloons starts the rescue audio again. During the Kojax theme, snow ambience is reduced to 20% and returns smoothly when the theme ends. The balloon airflow uses a separate reduced gain, keeping it behind the melody. These gains are controlled in `audio-config.js`; screen audio modes are managed by `GameAudio.setPresentation()` in `audio.js`.

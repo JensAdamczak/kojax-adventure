@@ -86,6 +86,10 @@ export const text = {
     loadingTitle: "Unpacking a little world…",
     loadingSubtitle: "Felt, wool, and a little courage",
   },
+  titleScreen: {
+    enter: "Enter the game",
+    continue: "Continue adventure",
+  },
   intro: {
     practice: "PRACTICE CROSSING",
     savingUnavailable:

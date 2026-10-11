@@ -1,5 +1,7 @@
 import { hazardContactDelay } from "./motion-timing.js";
 // Fixed ambience/effects mix, including the rescue theme.
+// Leave the snowstorm at 20% of its normal gain under the finale theme.
+export const rescueAmbienceScale = 0.2;
 export const audioMix = { ambience: 0.4, effects: 0.8 };
 // Match peak 400 ms K-weighted loudness to the approved jump (-28.6 LUFS).
 // Measured offline: no real-time analysis or changes to the recordings/timing.
@@ -11,7 +13,11 @@ export const footstepGainDb = {
   "cell-snow": -1.2,
 };
 export const soundGain = (name) =>
-  name === "rescue-theme" ? 0.65 : 10 ** ((footstepGainDb[name] || 0) / 20);
+  name === "rescue-theme"
+    ? 0.9
+    : name === "balloon-burner"
+      ? 0.2 // Keep the rescue airflow behind the melody, like the snow ambience.
+      : 10 ** ((footstepGainDb[name] || 0) / 20);
 
 export const audioBiomes = {
   water: { surface: "water", obstacle: null },

@@ -50,6 +50,7 @@ function harness(fetcher) {
     },
     createGain: () => ({
       gain: {
+        cancelScheduledValues() {},
         setValueAtTime() {},
         linearRampToValueAtTime() {},
         setTargetAtTime() {},
@@ -283,4 +284,77 @@ test("missing or rejecting Audio Session API still allows normal playback", asyn
     assert.equal(context.state, "running");
     assert.equal(sources.filter((s) => s.loop).length, 1);
   }
+});
+
+test("snow ambience ducks for the theme and restores after ending, replay or cancellation", async () => {
+  const { audio } = harness();
+  audio.setBiome("snow");
+  audio.unlock();
+  await settle();
+  const targets = [];
+  audio.ambientGain.gain.setTargetAtTime = (value) => targets.push(value);
+  assert.equal(audio.ambienceLevel(), 0.4);
+  audio.rescue();
+  assert.ok(Math.abs(targets.at(-1) - 0.08) < 1e-9);
+  const first = [...audio.voices].find((v) => v.theme);
+  first.source.onended();
+  assert.equal(targets.at(-1), 0.4);
+  audio.rescue(false, true);
+  const old = [...audio.voices].find((v) => v.theme);
+  audio.rescue(false, true);
+  old.source.onended(); // An old source finishing must not unduck a new replay.
+  assert.ok(Math.abs(targets.at(-1) - 0.08) < 1e-9);
+  audio.setSettings({ muted: true });
+  assert.equal(targets.at(-1), 0);
+  audio.setSettings({ muted: false });
+  assert.equal(targets.at(-1), 0.4);
+  audio.effect("rescue-theme");
+  audio.setBiome("water");
+  assert.equal(audio.ambienceLevel(), 0.4);
+});
+
+test("intros lower ambience; title/results silence audio; playing restores it", async () => {
+  const { audio, sources } = harness();
+  audio.setBiome("snow");
+  audio.unlock();
+  await settle();
+  audio.rescue();
+  audio.setPresentation("quiet");
+  assert.equal(audio.voices.size, 0);
+  assert.ok(Math.abs(audio.ambienceLevel() - 0.08) < 1e-9);
+  const count = sources.length;
+  audio.effect("jump");
+  assert.equal(sources.length, count);
+  audio.setPresentation("silent");
+  assert.equal(audio.ambienceLevel(), 0);
+  assert.equal(audio.ambientSource, null);
+  audio.unlock();
+  await settle();
+  assert.equal(audio.ambientSource, null);
+  audio.setPresentation("playing");
+  await settle();
+  assert.equal(audio.ambienceLevel(), 0.4);
+  assert.ok(audio.ambientSource);
+  audio.rescue(false, true);
+  assert.ok([...audio.voices].some((v) => v.theme));
+});
+
+test("ambience loading cannot start sound behind a silent entry screen", async () => {
+  let resolveAmbience;
+  const { audio } = harness(async (url) => ({
+    ok: true,
+    arrayBuffer: () =>
+      String(url).includes("ambience")
+        ? new Promise((resolve) => {
+            resolveAmbience = resolve;
+          })
+        : Promise.resolve(new ArrayBuffer(8)),
+  }));
+  audio.setBiome("water");
+  audio.unlock();
+  await settle();
+  audio.setPresentation("silent");
+  resolveAmbience(new ArrayBuffer(8));
+  await settle();
+  assert.equal(audio.ambientSource, undefined);
 });
